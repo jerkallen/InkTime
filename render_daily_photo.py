@@ -55,25 +55,30 @@ TEXT_AREA_HEIGHT = 100
 
 def extract_date_from_exif(exif_json: Optional[str]) -> str:
     """
-    从 EXIF JSON 中提取拍摄日期，返回 YYYY-MM-DD 格式，失败则返回空字符串。
+    从 EXIF JSON 中提取拍摄日期，返回 YYYY-MM-DD 格式，失败则返回今天日期（用于测试）。
     逻辑与 review_web.py 中保持一致。
     """
     if not exif_json:
-        return ""
+        # 测试模式：返回今天的日期
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m-%d")
     try:
         data = json.loads(exif_json)
     except Exception:
-        return ""
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m-%d")
     dt_str = data.get("datetime")
     if not dt_str:
-        return ""
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m-%d")
     try:
         date_part = str(dt_str).split()[0]
         parts = date_part.replace(":", "-").split("-")
         if len(parts) >= 3:
             return f"{parts[0]}-{parts[1]}-{parts[2]}"
     except Exception:
-        return ""
+        from datetime import datetime
+        return datetime.now().strftime("%Y-%m-%d")
     return ""
 
 
@@ -102,7 +107,6 @@ def load_sim_rows() -> List[Dict[str, Any]]:
                exif_gps_lon,
                exif_city
         FROM photo_scores
-        WHERE exif_json IS NOT NULL
         """
     ).fetchall()
     conn.close()

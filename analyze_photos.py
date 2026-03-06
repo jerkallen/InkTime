@@ -785,8 +785,17 @@ def call_vlm(image_path: Path) -> dict:
         print("[DEBUG] 返回内容：", data)
         raise RuntimeError("解析失败：无法从 choices[0].message.content 读取内容")
 
-    # content 应该是 JSON 字符串
+    # content 应该是 JSON 字符串（可能被 markdown 代码块包裹）
     try:
+        # 去除可能的 markdown 代码块标记
+        content = content.strip()
+        if content.startswith("```json"):
+            content = content[7:]  # 去掉 ```json
+        elif content.startswith("```"):
+            content = content[3:]  # 去掉 ```
+        if content.endswith("```"):
+            content = content[:-3]  # 去掉结尾的 ```
+        content = content.strip()
         obj = json.loads(content)
     except Exception:
         print("[DEBUG] 非 JSON 输出：", content)
